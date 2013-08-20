@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <title>cs4hs-tasklist</title>
+  <link rel="stylesheet" type="text/css" href="css/cs4hs-tasklist.css" />
+</head>
+<body>
+  {% if tasks|length %}
+    <h3>Task list for {{ user }}:</h3>
+    <form id="delete_form" action="delete" method="post">
+      <ul>
+        {% for task in tasks %}
+          <li>
+            <input type="checkbox" name="task_id" value="{{ task.id }}" />
+            <h4>{{ task.summary }}</h4>
+            <div>{{ task.body }}</div>
+          </li>
+        {% endfor %}
+      </ul>
+      <div>
+        <input type="submit" value="Delete Tasks" />
+      </div>
+    </form>
+  {% else %}
+    <h3>No tasks for {{ user }} yet!</h3>
+  {% endif %}
+
+  <h3>Add a new task:</h3>
+  <form id="new_form" action="new" method="post">
+    {% if new.has_error %}
+      <div class="error">Please enter both a summary and description below</div>
+    {% endif %}
+    Summary: <input type="text" name="summary" value="{{ new.summary }}" />
+    Description: <textarea name="body" rows="5">{{ new.body }}</textarea>
+    <input type="submit" value="Add Task" />
+  </form>
+</body>
+</html>
+

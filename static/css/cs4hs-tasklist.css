@@ -1,0 +1,40 @@
+* {
+  font-family: Arial, Verdana, sans-serif;
+}
+form, h3, h4, ul, li, input {
+  padding: 0;
+  margin: 0;
+}
+ul {
+  list-style-type: none;
+}
+li {
+  background-color: #E9F7F6;
+  padding: 3px;
+}
+h3,
+form,
+#delete_form li,
+#new_form input,
+#new_form textarea {
+  margin-bottom: 0.5em;
+}
+li > input {
+  float: right;
+}
+#delete_form > div {
+  text-align: right;
+}
+.error {
+  color: red;
+}
+#new_form input, #new_form textarea {
+  display: block;
+}
+textarea, #delete_form {
+  width: 400px;
+}
+input[type="submit"] {
+  padding: 0 3px;
+}
+
