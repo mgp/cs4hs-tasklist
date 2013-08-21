@@ -4,28 +4,32 @@ __author__ = 'michael.g.parker@gmail.com (Michael Parker)'
 
 import os
 
-from google.appengine import dist  # pylint: disable-msg=C6203
 from google.appengine.api import users
-from google.appengine.ext import webapp
-from google.appengine.ext.webapp import template
-from google.appengine.ext.webapp import util as webapp_util
+import jinja2
+import webapp2
 
-import tasks
+import storage
 
+
+_JINJA_ENVIRONMENT = jinja2.Environment(
+    loader=jinja2.FileSystemLoader(os.path.dirname(__file__)),
+    extensions=['jinja2.ext.autoescape'])
+_TEMPLATE = _JINJA_ENVIRONMENT.get_template('templates/index.html')
 _DEBUG = True
 
-_TEMPLATE_PATH = os.path.join(os.path.dirname(__file__), 'templates/index.html')
-
-
-def _write_html(response, template_values={}):
+def _write_html(response, template_values=None):
+  if template_values is None:
+    template_values = {}
+  template_values.setdefault('new', {})
   user = users.GetCurrentUser()
   template_values['user'] = user
-  template_values['tasks'] = tasks.get_tasks(user)
-  rendered_page = template.render(_TEMPLATE_PATH, template_values)
-  response.out.write(rendered_page)
+  template_values['tasks'] = storage.get_tasks(user)
+
+  rendered_page = _TEMPLATE.render(template_values)
+  response.write(rendered_page)
 
 
-class GetTasksHandler(webapp.RequestHandler):
+class GetTasksHandler(webapp2.RequestHandler):
   """Displays all tasks for the user, and a form to enter a new task."""
 
   def get(self):
@@ -36,7 +40,7 @@ class GetTasksHandler(webapp.RequestHandler):
       _write_html(self.response)
 
 
-class NewTaskHandler(webapp.RequestHandler):
+class NewTaskHandler(webapp2.RequestHandler):
   """Handler that creates a new task."""
 
   def get(self):
@@ -50,7 +54,7 @@ class NewTaskHandler(webapp.RequestHandler):
       self.handle_error(summary, body)
       return
 
-    tasks.new_task(user, summary, body)
+    storage.new_task(user, summary, body)
     self.redirect('/')
 
   def handle_error(self, summary, body):
@@ -66,7 +70,7 @@ class NewTaskHandler(webapp.RequestHandler):
     _write_html(self.response, template_values)
 
 
-class DeleteTaskHandler(webapp.RequestHandler):
+class DeleteTaskHandler(webapp2.RequestHandler):
   """Handler that deletes a given task."""
 
   def get(self):
@@ -75,18 +79,13 @@ class DeleteTaskHandler(webapp.RequestHandler):
   def post(self):
     user = users.GetCurrentUser()
     task_ids = self.request.get_all('task_id')
-    tasks.delete_tasks(user, task_ids)
+    storage.delete_tasks(user, task_ids)
     self.redirect('/')
 
 
-def main():
-  application = webapp.WSGIApplication([
+application = webapp2.WSGIApplication([
     ('/', GetTasksHandler),
     ('/new', NewTaskHandler),
     ('/delete', DeleteTaskHandler),
-  ], debug=_DEBUG)
-  webapp_util.run_wsgi_app(application)
-
-if __name__ == '__main__':
-  main()
+], debug=_DEBUG)
 
