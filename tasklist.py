@@ -51,13 +51,13 @@ class NewTaskHandler(webapp2.RequestHandler):
     summary = self.request.get('summary', False)
     body = self.request.get('body', False)
     if not summary or not body:
-      self.handle_error(summary, body)
+      self._handle_error(summary, body)
       return
 
     storage.new_task(user, summary, body)
     self.redirect('/')
 
-  def handle_error(self, summary, body):
+  def _handle_error(self, summary, body):
     new_task_template_values = {}
     if summary:
       new_task_template_values['summary'] = summary
