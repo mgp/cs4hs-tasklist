@@ -25,7 +25,7 @@ class StorageTest(unittest.TestCase):
   def tearDown(self):
     self.testbed.deactivate()
 
-  def assert_task(self, task, creator, summary, body, reminder):
+  def _assert_task(self, task, creator, summary, body, reminder):
     """Asserts that the Task instance has the given values."""
     self.assertEqual(creator, task.creator)
     self.assertEqual(summary, task.summary)
@@ -41,7 +41,7 @@ class StorageTest(unittest.TestCase):
     storage.new_task(user, summary1, body1)
     user_tasks = storage.get_tasks(user)
     self.assertEquals(1, len(user_tasks))
-    self.assert_task(user_tasks[0], user, summary1, body1, None)
+    self._assert_task(user_tasks[0], user, summary1, body1, None)
 
     # Add the second task with a reminder.
     summary2 = "summary2"
@@ -50,7 +50,7 @@ class StorageTest(unittest.TestCase):
     storage.new_task(user, summary2, body2, None)
     user_tasks = storage.get_tasks(user)
     self.assertEqual(2, len(user_tasks))
-    self.assert_task(user_tasks[1], user, summary2, body2, None)
+    self._assert_task(user_tasks[1], user, summary2, body2, None)
 
   def test_get_user_tasks(self):
     # Add the task for the first user.
@@ -67,22 +67,32 @@ class StorageTest(unittest.TestCase):
     # Assert that the tasks belonging to the users are kept separate.
     user_tasks = storage.get_tasks(user1)
     self.assertEqual(1, len(user_tasks))
-    self.assert_task(user_tasks[0], user1, summary1, body1, None)
+    self._assert_task(user_tasks[0], user1, summary1, body1, None)
     user_tasks = storage.get_tasks(user2)
     self.assertEqual(1, len(user_tasks))
-    self.assert_task(user_tasks[0], user2, summary2, body2, None)
+    self._assert_task(user_tasks[0], user2, summary2, body2, None)
 
   def test_delete_tasks(self):
     user = users.User("user@domain.com")
-    summary = "summary"
-    body = "body"
-    task_id = storage.new_task(user, summary, body)
+    # Add three tasks.
+    summary1 = "summary1"
+    body1 = "body1"
+    task_id1 = storage.new_task(user, summary1, body1)
+    summary2 = "summary2"
+    body2 = "body2"
+    task_id2 = storage.new_task(user, summary2, body2)
+    summary3 = "summary3"
+    body3 = "body3"
+    task_id3 = storage.new_task(user, summary3, body3)
+    user_tasks = storage.get_tasks(user)
+    self.assertEqual(3, len(user_tasks))
+
+    # Delete the first and third tasks.
+    storage.delete_tasks(user, [task_id1, task_id3])
+    # Assert that only the second task remains.
     user_tasks = storage.get_tasks(user)
     self.assertEqual(1, len(user_tasks))
-
-    storage.delete_tasks(user, [task_id])
-    user_tasks = storage.get_tasks(user)
-    self.assertEqual(0, len(user_tasks))
+    self._assert_task(user_tasks[0], user, summary2, body2, None)
 
   def test_delete_other_tasks_fails(self):
     # Add the task for the first user.
@@ -103,7 +113,7 @@ class StorageTest(unittest.TestCase):
     # Assert that the tasks for the second user were not deleted.
     user_tasks = storage.get_tasks(user2)
     self.assertEqual(1, len(user_tasks))
-    self.assert_task(user_tasks[0], user2, summary2, body2, None)
+    self._assert_task(user_tasks[0], user2, summary2, body2, None)
 
 
 if __name__ == '__main__':

@@ -48,7 +48,7 @@ def delete_tasks(user, task_ids):
   user_keys = []
   for task in tasks:
     if (task is not None) and (task.creator == user):
-      user_keys = task.key()
+      user_keys.append(task.key())
   db.delete(user_keys)
 
 
